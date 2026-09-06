@@ -8,7 +8,7 @@
 
 ## 1. 项目定位（一句话）
 
-**B站音频下载器**：FastAPI 后端 + Vue3 纯白 Web UI + pywebview 桌面打包，支持标准链接/裸BV号/b23.tv短链/多P 分集，串行下载转 MP3（192k 默认），双平台（macOS arm64 / Windows x64）由 **GitHub Actions 远端构建并自动发布**。**公开可用、不对使用者负责**（MIT License；README / 应用内"关于" / Release notes 三处免责）。
+**B站音频下载器**：FastAPI 后端 + Vue3 纯白 Web UI + pywebview 桌面打包，支持标准链接/裸BV号/b23.tv短链/多P 分集，串行下载转 MP3（192k 默认），双平台（macOS arm64 / Windows x64）由 **GitHub Actions 远端构建并自动发布**。**公开可用、不对使用者负责**（MIT License；README / 应用内"关于" / Release notes 三处免责）。**并行产品线：Chrome/Edge MV3 浏览器扩展**（`extension/`，B 站视频页一键下载 m4a，设计定稿见 §6 地图）。
 
 ## 2. 历史脉络与当前进度（新会话从这里接续）
 
@@ -19,10 +19,11 @@
 | M1–M6 实施 | 后端核心 → WS 进度 → 前端 → 打磨 → 打包；中途需求变更：3D 全部移除改纯白+条形码进度条；无感 Cookie（书签→Playwright）；进度分片兜底修复；打包改远端自动发布 | ✅ 完成（v0.1.0） |
 | v0.1.0 发布 | Release 双平台资产在线；tag 推送即自动构建+发布 | ✅ 已发布 |
 | **v0.1.1（已完成）** | **P1 许可免责 ✅ / P2 批量≤10 ✅ / P3 历史持久化 ✅ / P4 历史重试 ✅ / P5 Chromium 捆绑 ✅ / P6 发布+双平台真机验收 ✅**（2026-09-05 全量闭环） | ✅ 完成 |
+| **浏览器扩展 v1（并行产品线）** | MV3 扩展：B 站视频页一键下载音频（m4a 直存，WBI 签名/Referer/未登录提示/分P 列表），与桌面应用零耦合。设计树经 grilling 收敛，**设计定稿 2026-09-06**（`docs/design-extension-v1.md`） | 设计 ✅ / 实施 ⬜ |
 
 **v0.1.1 关键事实**：Release 资产 mac 248MB / win 276MB（含 Chromium）；Windows 打包版曾因 windowed 模式 stdio=None 启动崩溃 → `launcher._ensure_stdio()` 修复并重发修复版（真机确认）；git 历史曾含 `output/` 23 个 mp3（~130MB）→ `filter-repo` 重写历史彻底清除（main/v0.1.0/v0.1.1 均 force push；无 Cookie/凭据泄露，SESSDATA 均为测试假值）。
 
-**下一步（接续点）**：v0.1.1 已闭环。后续迭代按 `docs/roadmap.md` §2 候选推进（高优先：CI 测试门禁、任务历史清空/搜索、多P 全选批量）。开启 v0.1.2 前先读 `roadmap.md` 更新计划、`design-analysis.md` 设计方案，再实施。
+**下一步（接续点）**：① **浏览器扩展 v1 实施**：先读 `docs/design-extension-v1.md`，实现 `extension/`（TypeScript MV3：content/background/popup + wbi/url/naming 纯函数），`npm test`（vitest）+ `npm run build` 后按 `manual-test-plan.md` §11（X01–X12）手动验收；② 桌面应用后续迭代按 `docs/roadmap.md` §2 候选推进（高优先：CI 测试门禁、历史清空/搜索、多P 全选批量）。开启 v0.1.2 前先读 `roadmap.md` §2 与 `design-analysis.md`。
 
 ## 3. 技术栈与目录结构
 
@@ -41,9 +42,10 @@ bilibiliVedioDownload/
 │  └─ core/dirs.py       # 数据目录初始化/迁移
 ├─ backend/tests/        # pytest（当前 98 个）+ conftest（数据目录隔离）
 ├─ frontend/             # Vue3 + Vite 纯白主题（three.js 已移除）；src/{api,components,store.js}
+├─ extension/            # Chrome/Edge MV3 扩展（v1 设计定稿）：content/background/popup + wbi/url/naming 纯函数（vitest）
 ├─ packaging/bilidownloader.spec   # PyInstaller（onedir + .app BUNDLE + ffmpeg；Chromium 由 workflow 直拷）
 ├─ .github/workflows/release.yml   # tag v* → 矩阵构建(macos-15 arm64/windows-latest x64) → Playwright Chromium 安装 → 直拷 _browsers → 自动 Release
-├─ docs/                 # 七份文档（见 §6）
+├─ docs/                 # 八份文档（见 §6）
 └─ data/                 # 运行数据(gitignore)：cookie/settings/tasks.json/browser_profile/downloads
 ```
 
@@ -71,6 +73,10 @@ cd backend && ../venv/bin/python -m pytest tests/   # 全量用例（当前 98�
 cd backend && ../venv/bin/ruff check app tests      # lint
 cd frontend && npm run build                        # 前端构建（改动前端后必须 build）
 
+# 浏览器扩展（extension/，v1）
+cd extension && npm install && npm test             # vitest 纯函数单测（wbi/url/naming）
+cd extension && npm run build                       # tsc → dist/；chrome://extensions 开发者模式加载 extension/
+
 # 发布（唯一官方路径：远端构建+自动发布）
 git tag -a vX.Y.Z -m "release" && git push origin vX.Y.Z
 
@@ -86,6 +92,7 @@ git tag -a vX.Y.Z -m "release" && git push origin vX.Y.Z
 | `design-analysis.md` | 设计决策大全（API 表/架构/决策表/里程碑） | 设计细节或改动设计 |
 | `roadmap.md` | v0.1.1 清单（已全勾）+ v0.1.2+ 候选 / 明确不做 | 规划版本 |
 | `design-v0.1.1.md` | P2–P6 实现级方案 + 实施偏差记录 | 改 v0.1.1 相关代码前 |
+| `design-extension-v1.md` | 浏览器扩展 v1 实现级设计（接口/权限/边界/验收） | 改动扩展 v1 代码前 |
 | `development-guide.md` | 编码规范 + P3 持久化/P5 捆绑规范 | 编码、提交规范 |
 | `project-status.md` | 已完成/未完成/可扩展 + 发布期修复记录 | 查状态与限制 |
 | `manual-test-plan.md` | 手动验收用例（SF/U/S/C/D/W/V/E/P/H） | 交付验收 |
@@ -114,9 +121,9 @@ git tag -a vX.Y.Z -m "release" && git push origin vX.Y.Z
 
 ## 9. 验收方式（怎么验收）
 
-- **代码门禁**：`pytest` 全量绿（当前 98）+ `ruff check` 零错 + `npm run build` 通过；
-- **功能验收**：逐项对照 `roadmap.md` §1 验收标准（v0.1.1 P1–P6 全部 ✅）；
-- **手动验收**：按 `manual-test-plan.md`（冒烟 SF / URL 解析 U / 设置 S / Cookie C（含 C09 打包版内置浏览器）/ 下载 D / 历史与重试 H / WS W / 错误 E / 性能 P）；
+- **代码门禁**：`pytest` 全量绿（当前 98）+ `ruff check` 零错 + `npm run build` 通过；**扩展改动另加 `cd extension && npm test`（vitest）绿**；
+- **功能验收**：逐项对照 `roadmap.md` §1 验收标准（v0.1.1 P1–P6 全部 ✅）；扩展对照 `design-extension-v1.md` §11 清单；
+- **手动验收**：按 `manual-test-plan.md`（冒烟 SF / URL 解析 U / 设置 S / Cookie C（含 C09 打包版内置浏览器）/ 下载 D / 历史与重试 H / WS W / 错误 E / 性能 P / **扩展 X01–X12**）；
 - **发布验收**：推 tag → Actions 全绿 → `gh release view` 确认双平台资产（v0.1.1：mac 248MB / win 276MB，含 Chromium）→ 真机冒烟（mac 右键打开、win 解压运行；下载链路需真实 Cookie）。
 
 ## 10. 文档变更纪律

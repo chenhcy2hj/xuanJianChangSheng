@@ -73,9 +73,28 @@
 
 ---
 
+## 1.9 浏览器扩展 v1（并行产品线 · 设计已定稿 ✅ 2026-09-06）
+
+> 定位：与桌面应用**并行**的独立产品线（同仓库 `extension/`，v1 与后端零耦合）。
+> 实现级设计：`docs/design-extension-v1.md`（接口/流程/权限/边界/验收）。
+
+| 项 | 内容 | 状态 |
+|----|------|------|
+| E1 页面识别 | content script + 纯函数 url.ts（BV/`?p=`/页面匹配），上报 PAGE_INFO | 设计 ✅ |
+| E2 触发与交互 | DownloadTrigger 接口 + Instant/Popup 实现；动态 setPopup；快捷键 | 设计 ✅ |
+| E3 接口与签名 | lib/bilibili.ts（view/playurl）+ wbi.ts 纯函数签名 | 设计 ✅ |
+| E4 下载落地 | fetch(Referer)→blob→chrome.downloads；naming.ts 命名/清理/uniquify | 设计 ✅ |
+| E5 单测门禁 | vitest 覆盖 wbi/url/naming 纯函数；`cd extension && npm test` | 设计 ✅ |
+| E6 手动验收 | manual-test-plan.md §13（X01–X12） | 设计 ✅ |
+
+**验收标准**：见 `docs/design-extension-v1.md` §11（设计树逐项勾选）+ `manual-test-plan.md` §13。
+
+---
+
 ## 2. v0.1.2+ 候选（维持优先级，不掺入 v0.1.1）
 
 ### 高优先
+- 浏览器扩展 v1 实施（设计已定稿，见 §1.9 / `docs/design-extension-v1.md`）
 - 多P 全选批量下载（合集/收藏夹形态解析）
 - GitHub workflow 增加 test job（pytest + ruff 门禁，失败中止发布）
 - 任务历史手动清空按钮（P3 若未含）+ 搜索/过滤
@@ -120,3 +139,4 @@
 | `packaging/bilidownloader.spec`、`.github/workflows/release.yml`、`app/launcher.py` 或 `config.py` | P5 |
 | `docs/design-analysis.md`（§2.4/决策表）、`docs/project-status.md`、`docs/manual-test-plan.md` | 全项同步 |
 | `docs/development-guide.md` | P3/P5 规范补充（持久化写盘规范、捆绑目录约定） |
+| `docs/design-extension-v1.md`（新增）、`extension/`（新增目录）、`PROJECT_SUMMARY.md` §2/§6、`manual-test-plan.md` §13 | 扩展 v1（§1.9） |

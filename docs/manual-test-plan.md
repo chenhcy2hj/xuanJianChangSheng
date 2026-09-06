@@ -1,9 +1,10 @@
 # 手动测试方案（v0.1.1 验收基线）
 
-> 用途：在本地亲手验证已实现功能（FastAPI 后端 + Vue3 纯白主题前端）。
-> 测试对象：当前代码（macOS/Windows 打包版同样适用；打包版专项见 §4 Cookie 与 §5 下载）。
+> 用途：在本地亲手验证已实现功能（FastAPI 后端 + Vue3 纯白主题前端 + 浏览器扩展 v1）。
+> 测试对象：当前代码（macOS/Windows 打包版同样适用；打包版专项见 §4 Cookie 与 §5 下载；**浏览器扩展见 §11（X）**）。
 > v0.1.1 新增：P2 批量上限（§2 U09/U10、§8 E06）、P3 历史持久化（§5.5 H）、P4 历史重试（§5.5 H）、P5 打包版内置浏览器（§4 C09）。
-> 配套文档：`docs/design-analysis.md`（设计）、`docs/development-guide.md`（规范）。
+> v1 扩展新增：§11 浏览器扩展（X01–X12；设计见 `docs/design-extension-v1.md`）。
+> 配套文档：`docs/design-analysis.md`（设计）、`docs/design-extension-v1.md`（扩展设计）、`docs/development-guide.md`（规范）。
 
 > **验收记录 2026-09-05（v0.1.1 双平台）**：mac 启动/无感 Cookie/下载全链路通过；Windows 修复版（stdio 崩溃修复）启动与下载链路通过；下方 ✓ 为本次验收覆盖项（含 v0.1.1 专项）。
 
@@ -44,6 +45,11 @@ cd backend && ../venv/bin/uvicorn app.main:app --port 8000
 ### 0.4 测试状态位
 - 每用例记：**通过 ✓ / 失败 ✗ / 阻塞 ⚠（说明）**
 - 下载类用例需**有效 Cookie**（见 §4 Cookie 用例）；无 Cookie 时 §5 标 ⚠。
+
+### 0.5 扩展测试准备（§11 用例前必做）
+- [ ] `cd extension && npm install && npm test && npm run build`（纯函数单测全绿 + dist 产出）
+- [ ] `chrome://extensions` 开启「开发者模式」→「加载已解压的扩展程序」→ 选择 `extension/` 目录（含 manifest.json）
+- [ ] 准备一个**已登录** B 站视频页标签页（登录态判定仅看 SESSDATA cookie 是否存在）
 
 ---
 
@@ -159,7 +165,27 @@ cd backend && ../venv/bin/uvicorn app.main:app --port 8000
 | H05 | 连续制造 501+ 条历史（脚本循环） | tasks.json 自动裁剪至最新 500 条 | ✓（自动化用例覆盖） |
 | H06 | 手动损坏 tasks.json（写入乱码）后启动 | 按空历史启动，应用不崩溃（P3 容错） | ✓（自动化用例覆盖） |
 
-## 11. 回归清单（快速全量）
+## 11. 浏览器扩展（X，v1）
+
+> 前置：§0.5 准备完成；测试浏览器 Chrome/Edge 均可；下载为 m4a 直存（不转码）。
+> 设计：`docs/design-extension-v1.md`（权限/接口/流程）；验收清单见其 §11。
+
+| # | 操作 | 预期 | 结果 |
+|---|------|------|------|
+| X01 | 打开**单P**视频页，单击扩展图标 | **立即开始下载**（不弹窗），完成后系统通知；下载目录出现 `标题.m4a`（中文标题正常） | |
+| X02 | 打开**多P**视频页，单击扩展图标 | 弹出 popup，列出全部分 P（名称+时长），**默认勾选当前播放 P** | |
+| X03 | popup 勾选 P1 + P3 后点下载 | 依次下载生成 `标题-P1.m4a`、`标题-P3.m4a`；popup 关闭不中断 | |
+| X04 | 多P 页面按快捷键（默认 Ctrl/Command+Shift+D） | **立即下载当前播放 P**（不进 popup） | |
+| X05 | `chrome://extensions/shortcuts` 修改快捷键 | 新快捷键生效（可配置性） | |
+| X06 | 未登录（无 SESSDATA）：单P 单击图标 | 弹出确认小窗「未登录，将下载低音质」→ 点继续 → 正常下载 | |
+| X07 | 未登录：多P 单击图标 | popup 内显示未登录提示与确认按钮；确认后按勾选下载 | |
+| X08 | 同一视频分别用已登录/未登录下载 | 已登录文件码率/体积更高（服务端按登录态给档位） | |
+| X09 | 重复下载同名视频 | 浏览器自动重名为 `标题 (1).m4a`，不覆盖（uniquify） | |
+| X10 | 标题含 `\/:*?"<>|` 的视频 | 文件名中这些字符被清理（替换为 `_`） | |
+| X11 | 非视频页（首页/搜索页/站外）单击图标 | 系统通知「仅支持 bilibili.com/video/ 视频页」 | |
+| X12 | 断网或触发 412 时下载 | 重试后仍失败 → 明确失败通知（风控/网络分类），扩展不崩溃 | |
+
+## 12. 回归清单（快速全量）
 
 - [ ] SF01–SF06 冒烟
 - [ ] U01–U09 解析与创建（含 P2 批量上限）
@@ -171,10 +197,12 @@ cd backend && ../venv/bin/uvicorn app.main:app --port 8000
 - [ ] V01（3D 已移除，仅无残留检查）
 - [ ] E01–E06 错误边界
 - [ ] P01–P02 性能
+- [ ] X01–X12 浏览器扩展（§11，需先完成 0.5 准备）
 - [ ] `cd backend && ../venv/bin/python -m pytest tests/` → 全绿（自动用例 96 个）
 - [ ] `cd backend && ../venv/bin/ruff check app tests` → All checks passed
+- [ ] `cd extension && npm test` → 全绿（wbi/url/naming 纯函数）
 
-## 12. 问题记录模板
+## 13. 问题记录模板
 
 ```
 日期：____

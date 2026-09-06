@@ -70,6 +70,21 @@
 | 3 | **多P 仅下载指定分P** | `?p=2` 只处理所选分P，不做"全部 P"批量 | 后续增加 playlist 能力 |
 | 4 | **无 CI 测试门禁** | workflow 只构建发布，未跑 pytest/ruff | 可在 workflow 加 test job 防回归 |
 | 5 | 下载并发恒定串行、无限速/代理/自定义 UA 配置 | 特网场景受限 | 设置面板扩展项 |
+| 6 | **浏览器扩展 v1 未实施** | 并行产品线（MV3，B 站视频页一键下载 m4a）设计已定稿（2026-09-06，`design-extension-v1.md`），代码待启动 | 按设计文档实施（详见 roadmap §1.9） |
+
+---
+
+## 〇.5 浏览器扩展 v1（并行产品线 · 设计定稿）
+
+> 2026-09-06 设计定稿（grilling 设计树收敛）；实施待启动。详见 `docs/design-extension-v1.md` 与 `docs/roadmap.md` §1.9。
+
+| 项 | 内容 |
+|----|------|
+| 形态 | Chrome/Edge MV3 扩展（TypeScript），同仓库 `extension/`，与桌面应用**零耦合**（v1） |
+| 功能 | B 站视频页（`video/BVxxx`）一键下载音频：单P 单击直下 / 多P popup 勾选 / 快捷键；m4a 直存最高可用音质 |
+| 关键技术 | WBI 签名（TS 纯函数）、`chrome.cookies` 读 HttpOnly、直链带 Referer 防防盗链、`action.setPopup` 动态切换、DownloadTrigger 接口（Instant/Popup 两实现） |
+| 门禁 | vitest 纯函数单测（wbi/url/naming）+ `manual-test-plan.md` §11 手动验收（X01–X12） |
+| 分发 | v1 本地加载/CRX；商店上架为 v2 候选 |
 
 ---
 

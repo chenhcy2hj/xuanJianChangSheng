@@ -271,6 +271,13 @@ B 站 web 接口 2023-07 起强制 WBI 签名（playurl 等），算法：
 
 ---
 
-## 实施记录（代码合入后回填）
+## 实施记录（2026-09-06，代码合入后回填）
 
-- （待实施）
+- **工程**：`npm install` 遇 `~/.npm` root 权限遗留（EPERM）→ 按 PROJECT_SUMMARY §7 约定改用项目内缓存 `--cache ./extension/npm-cache`（安装完成后已删除，不提交）；
+- **md5**：无外部依赖手写（RFC 1321），单测与 node:crypto 对拍（含 1000 字符多块输入）。实施中修复两处：填充长度 `ceil64(len+9)`（原 `ceil64(len+8)` 在 len=56 边界缺 1 字节）；摘要按 32 位寄存器小端字节序逐字节输出；
+- **wbiSign 契约**：返回**编码后**的值（含 wts/w_rid），调用方直接拼 query 即可（设计文档未明确返回值编码形态，此为实施细化）；
+- **BV 正则**：`^\/video\/(BV[0-9A-Za-z]{10})(?:\/|$)` 锚定结尾防 11 位误匹配（后端为正则整串匹配，语义一致）；
+- **content 精简**：仅上报 `url`，BV/`?p=` 由背景侧解析（标题以 view API 为准，不再传 document.title）；
+- **未登录单P 确认**：`chrome.windows.create` 小窗加载 `popup.html?mode=confirm`，确认/取消经消息驱动挂起的下载（与 §5.4 一致）；
+- **快捷键**：默认 Ctrl/Command+Shift+D，「下载当前 P」始终立即执行（多P 页面也直下，不进 popup）；
+- **手动验收**：X01–X12 未执行（需真机加载扩展，见 `manual-test-plan.md` §11）。

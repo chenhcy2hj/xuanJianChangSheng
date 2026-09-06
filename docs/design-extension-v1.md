@@ -281,3 +281,4 @@ B 站 web 接口 2023-07 起强制 WBI 签名（playurl 等），算法：
 - **未登录单P 确认**：`chrome.windows.create` 小窗加载 `popup.html?mode=confirm`，确认/取消经消息驱动挂起的下载（与 §5.4 一致）；
 - **快捷键**：默认 Ctrl/Command+Shift+D，「下载当前 P」始终立即执行（多P 页面也直下，不进 popup）；
 - **手动验收**：X01–X12 未执行（需真机加载扩展，见 `manual-test-plan.md` §11）。
+- **构建修复（2026-09-06 反馈）**：初版 `tsc` 直出产物保留 `import` → MV3 content script 不支持 module、service worker 未声明 `type:module` 时报 `SyntaxError: Cannot use import statement outside a module`（注册失败 Status code: 15）。**改用 esbuild 打包三个入口为 IIFE 单文件**（`scripts/build.mjs`，devDependency: esbuild）；类型检查独立为 `npx tsc --noEmit`。manifest 引用路径不变。

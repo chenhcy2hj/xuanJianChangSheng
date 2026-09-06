@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "B 站音频一键下载",
+  "version": "0.1.0",
+  "description": "在 B 站视频页一键下载音频（m4a 直存，自动识别 cookie 与分P）",
+  "permissions": ["cookies", "downloads", "notifications", "commands"],
+  "host_permissions": [
+    "https://*.bilibili.com/*",
+    "https://*.bilivideo.com/*",
+    "https://*.hdslb.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "action": {
+    "default_title": "B 站音频一键下载"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.bilibili.com/video/*"],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "download-current": {
+      "suggested_key": { "default": "Ctrl+Shift+D", "mac": "Command+Shift+D" },
+      "description": "立即下载当前分P音频"
+    }
+  },
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  }
+}

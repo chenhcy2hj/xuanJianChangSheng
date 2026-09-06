@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    :root { --bili-pink: #fb7299; --text: #222; --muted: #888; --line: #eee; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 320px;
+      font: 13px/1.6 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: #fff;
+      padding: 12px;
+    }
+    h1 { font-size: 14px; margin-bottom: 8px; }
+    .muted { color: var(--muted); font-size: 12px; }
+    ul.parts { list-style: none; max-height: 220px; overflow: auto; border-top: 1px solid var(--line); }
+    ul.parts li {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 2px; border-bottom: 1px solid var(--line);
+      cursor: pointer;
+    }
+    ul.parts input { accent-color: var(--bili-pink); }
+    ul.parts .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    ul.parts .dur { color: var(--muted); font-size: 12px; }
+    button.action {
+      margin-top: 10px; width: 100%; padding: 7px 0;
+      background: var(--bili-pink); color: #fff; border: none; border-radius: 4px;
+      cursor: pointer; font-size: 13px;
+    }
+    button.action:disabled { background: #ccc; cursor: not-allowed; }
+    .warn {
+      margin-top: 8px; padding: 6px 8px; font-size: 12px;
+      background: #fff7e6; color: #ad6800; border: 1px solid #ffe7ba; border-radius: 4px;
+    }
+    .center { text-align: center; }
+    .row { display: flex; gap: 8px; margin-top: 10px; }
+    .row button { flex: 1; padding: 7px 0; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .primary { background: var(--bili-pink); color: #fff; border: none; }
+    .ghost { background: #fff; color: var(--text); border: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="dist/popup/popup.js"></script>
+</body>
+</html>
